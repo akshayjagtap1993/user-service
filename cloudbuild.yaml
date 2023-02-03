@@ -1,0 +1,17 @@
+---
+
+options:
+  env:
+    - 'SHORT_SHA=$SHORT_SHA'
+    - 'IMAGE_PATH=us-central1-docker.pkg.dev/$PROJECT_ID/my-docker-repo/user-service-repo:$SHORT_SHA'
+
+steps:
+  - id: 'Maven'
+    name: 'maven:3-jdk-11'
+    entrypoint: mvn
+    args: ['clean', 'install']
+
+  - id: 'Docker build & push'
+    name: 'gcr.io/cloud-builders/docker'
+    entrypoint: bash
+    args: ['-c', 'docker build -t "$${IMAGE_PATH}" . && docker push "$${IMAGE_PATH}"']
