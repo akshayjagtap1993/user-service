@@ -22,7 +22,10 @@ public class UserService {
         Map<String, Object> user3 = new HashMap<>();
         user3.put("userid", 3);
         user3.put("username", "Jagtap");
-        return Arrays.asList(user1, user2, user3);
+        Map<String, Object> user4 = new HashMap<>();
+        user4.put("userid", 4);
+        user4.put("username", "Mahesh");
+        return Arrays.asList(user1, user2, user3, user4);
     }
 
     @HystrixCommand(fallbackMethod = "getDefaultUser", commandProperties = {
