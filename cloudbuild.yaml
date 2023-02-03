@@ -2,8 +2,7 @@
 
 options:
   env:
-    - 'SHORT_SHA=$SHORT_SHA'
-    - 'IMAGE_PATH=us-central1-docker.pkg.dev/$PROJECT_ID/my-docker-repo/user-service-repo:$SHORT_SHA'
+    - 'IMAGE_PATH=us-central1-docker.pkg.dev/$PROJECT_ID/my-docker-repo/user-service:$SHORT_SHA'
 
 steps:
   - id: 'Maven'
