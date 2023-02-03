@@ -18,6 +18,11 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @GetMapping("/")
+    public String getDefault() {
+        return "Application user-service is up";
+    }
+
     @GetMapping("/users")
     public ResponseEntity<BaseResponse> getAllUsers() {
         var usersList = userService.getAllUsers();
