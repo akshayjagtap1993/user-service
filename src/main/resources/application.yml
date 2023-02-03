@@ -1,0 +1,15 @@
+
+spring:
+  application:
+    name: user-service
+
+#management.endpoints.web.exposure.include: "*"
+#management.endpoint.health.group.custom.show-details: always
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:9000/eureka/
+
+server:
+  port: 8091
