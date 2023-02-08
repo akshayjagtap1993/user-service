@@ -18,4 +18,4 @@ steps:
   - id: 'K8s deployment'
     name: 'gcr.io/cloud-builders/docker'
     entrypoint: bash
-    args: ['cat k8s-deployment.yaml | sed "s/{app_version}/$SHORT_SHA/g" k8s-deployment.yaml | kubectl apply -f -']
+    args: ['-c', 'cat k8s-deployment.yaml | sed "s/{app_version}/$SHORT_SHA/g" k8s-deployment.yaml | kubectl apply -f -']
