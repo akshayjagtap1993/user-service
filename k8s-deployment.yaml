@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-service-app  #This should match with .template.metadata.labels
+  template:
+    metadata:
+      labels:
+        app: user-service-app
+    spec:
+      containers:
+      - name: user-service
+        image: user-service:v1.0.0
+        ports:
+        - containerPort: 8080   #At this port app will be running
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-loadbalancer
+spec:
+  type: LoadBalancer
+  selector:
+    app: user-service-app  #This should be same as labels of pod template
+  ports:
+  - port: 8091    #Port where we want to use access app
+    targetPort: 8080    #Optinal. Port where app is actually running in container(s) inside cluster

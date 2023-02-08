@@ -6,6 +6,7 @@ import com.ecommerce.userservice.service.UserService;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +16,15 @@ import java.util.*;
 @RestController
 public class UserController {
 
+    @Value("${user-service.version}")
+    private String appVersion;
+
     @Autowired
     private UserService userService;
 
     @GetMapping("/")
     public String getDefault() {
-        return "Application user-service is up";
+        return String.format("Application user-service is up with version: [%s]", appVersion);
     }
 
     @GetMapping("/users")
