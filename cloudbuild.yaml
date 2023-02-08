@@ -18,4 +18,6 @@ steps:
   - id: 'K8s deployment'
     name: 'gcr.io/cloud-builders/kubectl'
     entrypoint: bash
-    args: ['-c', 'cat k8s-deployment.yaml | sed "s/{IMAGE_PATH}/\"$${IMAGE_PATH}\"/g" k8s-deployment.yaml | kubectl apply -f -']
+    args: ['-c', 'cat k8s-deployment.yaml | sed "s/{IMAGE_PATH}/${IMAGE_PATH}/g" k8s-deployment.yaml | kubectl apply -f -']
+    env:
+    - 'IMAGE_PATH="$${IMAGE_PATH}"'
