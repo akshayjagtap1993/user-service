@@ -16,6 +16,6 @@ steps:
     args: ['-c', 'docker build -t "$${IMAGE_PATH}" . && docker push "$${IMAGE_PATH}"']
 
   - id: 'K8s deployment'
-    name: 'gcr.io/cloud-builders/docker'
+    name: 'gcr.io/cloud-builders/kubectl'
     entrypoint: bash
-    args: ['-c', 'apt-get install kubectl', 'cat k8s-deployment.yaml | sed "s/{app_version}/$SHORT_SHA/g" k8s-deployment.yaml | kubectl apply -f -']
+    args: ['-c', 'cat k8s-deployment.yaml | sed "s/{app_version}/$SHORT_SHA/g" k8s-deployment.yaml | kubectl apply -f -']
