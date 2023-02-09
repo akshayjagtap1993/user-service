@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: IMAGE_PATH
+        image: us-central1-docker.pkg.dev/$PROJECT_ID/my-docker-repo/user-service:COMMIT_ID
         ports:
         - containerPort: 8080   #At this port app will be running
 
