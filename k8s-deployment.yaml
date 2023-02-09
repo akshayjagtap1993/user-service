@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: us-central1-docker.pkg.dev/qwiklabs-gcp-00-7031a0c79312/my-docker-repo/user-service:35705bc
+        image: us-central1-docker.pkg.dev/qwiklabs-gcp-00-7031a0c79312/my-docker-repo/user-service:COMMIT_ID
         ports:
         - containerPort: 8080   #At this port app will be running
 
