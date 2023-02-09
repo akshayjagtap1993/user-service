@@ -22,6 +22,6 @@ steps:
     args:
       - '-c'
       - |
-        IMAGE_PATH=$${IMAGE_PATH}
+        IMAGE_PATH="$${IMAGE_PATH}"
         echo $IMAGE_PATH
         cat k8s-deployment.yaml | sed "s/IMAGE_PATH/$IMAGE_PATH/g" k8s-deployment.yaml | kubectl apply -f -
