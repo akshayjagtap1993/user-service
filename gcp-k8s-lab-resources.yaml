@@ -1,0 +1,187 @@
+# [START cloudbuild]
+steps:
+  # This step runs the unit tests on the app
+  - name: 'python:3.7-slim'
+    id: Test
+    entrypoint: /bin/sh
+    args:
+      - -c
+      - 'pip install flask && python test_app.py -v'
+
+  # This step builds the container image.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repository/hello-cloudbuild:$SHORT_SHA'
+      - '.'
+
+  # This step pushes the image to Artifact Registry
+  # The PROJECT_ID and SHORT_SHA variables are automatically
+  # replaced by Cloud Build.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repository/hello-cloudbuild:$SHORT_SHA'
+# [END cloudbuild]
+
+
+  ----------------------------------------
+
+# [START cloudbuild]
+steps:
+  # This step runs the unit tests on the app
+  - name: 'python:3.7-slim'
+    id: Test
+    entrypoint: /bin/sh
+    args:
+      - -c
+      - 'pip install flask && python test_app.py -v'
+
+  # This step builds the container image.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repository/hello-cloudbuild:$SHORT_SHA'
+      - '.'
+
+  # This step pushes the image to Artifact Registry
+  # The PROJECT_ID and SHORT_SHA variables are automatically
+  # replaced by Cloud Build.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repository/hello-cloudbuild:$SHORT_SHA'
+  # [END cloudbuild]
+
+  # [START cloudbuild-trigger-cd]
+  # This step clones the hello-cloudbuild-env repository
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Clone env repository
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        gcloud source repos clone hello-cloudbuild-env && \
+        cd hello-cloudbuild-env && \
+        git checkout candidate && \
+        git config user.email $(gcloud auth list --filter=status:ACTIVE --format='value(account)')
+
+  # This step generates the new manifest
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Generate manifest
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        sed "s/GOOGLE_CLOUD_PROJECT/${PROJECT_ID}/g" kubernetes.yaml.tpl | \
+        sed "s/COMMIT_SHA/${SHORT_SHA}/g" > hello-cloudbuild-env/kubernetes.yaml
+
+  # This step pushes the manifest back to hello-cloudbuild-env
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Push manifest
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        set -x && \
+        cd hello-cloudbuild-env && \
+        git add kubernetes.yaml && \
+        git commit -m "Deploying image us-central1-docker.pkg.dev/$PROJECT_ID/my-repository/hello-cloudbuild:${SHORT_SHA}
+        Built from commit ${COMMIT_SHA} of repository hello-cloudbuild-app
+        Author: $(git log --format='%an <%ae>' -n 1 HEAD)" && \
+        git push origin candidate
+
+# [END cloudbuild-trigger-cd]
+
+
+  ----------------------------------------
+
+# [START cloudbuild-delivery]
+steps:
+  # This step deploys the new version of our container image
+  # in the hello-cloudbuild Kubernetes Engine cluster.
+  - name: 'gcr.io/cloud-builders/kubectl'
+    id: Deploy
+    args:
+      - 'apply'
+      - '-f'
+      - 'kubernetes.yaml'
+    env:
+      - 'CLOUDSDK_COMPUTE_REGION=us-central1'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cloudbuild'
+
+  # This step copies the applied manifest to the production branch
+  # The COMMIT_SHA variable is automatically
+  # replaced by Cloud Build.
+  - name: 'gcr.io/cloud-builders/git'
+    id: Copy to production branch
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        set -x && \
+        # Configure Git to create commits with Cloud Build's service account
+        git config user.email $(gcloud auth list --filter=status:ACTIVE --format='value(account)') && \
+        # Switch to the production branch and copy the kubernetes.yaml file from the candidate branch
+        git fetch origin production && git checkout production && \
+        git checkout $COMMIT_SHA kubernetes.yaml && \
+        # Commit the kubernetes.yaml file with a descriptive commit message
+        git commit -m "Manifest from commit $COMMIT_SHA
+        $(git log --format=%B -n 1 $COMMIT_SHA)" && \
+        # Push the changes back to Cloud Source Repository
+        git push origin production
+# [END cloudbuild-delivery]
+
+  -------------------------------------------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-cloudbuild
+  labels:
+    app: hello-cloudbuild
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-cloudbuild
+  template:
+    metadata:
+      labels:
+        app: hello-cloudbuild
+    spec:
+      containers:
+        - name: hello-cloudbuild
+          image: us-central1-docker.pkg.dev/GOOGLE_CLOUD_PROJECT/my-repository/hello-cloudbuild:COMMIT_SHA
+          ports:
+            - containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hello-cloudbuild
+spec:
+  selector:
+    app: hello-cloudbuild
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
+
+  -----------------------------------
+  
+  # [START dockerfile]
+  FROM python:3.7-slim
+  RUN pip install flask
+  WORKDIR /app
+  COPY app.py /app/app.py
+  ENTRYPOINT ["python"]
+  CMD ["/app/app.py"]
+# [END dockerfile]
