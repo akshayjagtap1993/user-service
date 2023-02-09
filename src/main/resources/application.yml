@@ -12,4 +12,4 @@ eureka:
       defaultZone: http://localhost:9000/eureka/
 
 user-service:
-  version: v1.0.1
+  version: v1.0.2

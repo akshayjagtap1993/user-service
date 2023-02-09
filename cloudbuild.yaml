@@ -24,9 +24,7 @@ steps:
       - |
         echo $SHORT_SHA
         gcloud container clusters get-credentials hello-cloudbuild
-        PROJECT_ID=$(gcloud config get-value project)
-        cat k8s-deployment.yaml
-        cat k8s-deployment.yaml | sed "s/COMMIT_ID/$SHORT_SHA/g" k8s-deployment.yaml | kubectl apply -f -
+        cat k8s-deployment.yaml | sed "s/PROJECT_ID/$PROJECT_ID/g" | sed "s/COMMIT_ID/$SHORT_SHA/g" | kubectl apply -f -
     env:
       - 'CLOUDSDK_COMPUTE_REGION=us-central1'
       - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cloudbuild'
