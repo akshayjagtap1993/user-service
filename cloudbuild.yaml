@@ -22,6 +22,7 @@ steps:
     args:
       - '-c'
       - |
+        echo $SHORT_SHA
         cat k8s-deployment.yaml | sed "s/COMMIT_ID/$SHORT_SHA/g" k8s-deployment.yaml | kubectl apply -f -
     env:
       - 'CLOUDSDK_COMPUTE_REGION=us-central1'
